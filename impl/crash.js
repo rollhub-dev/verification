@@ -1,5 +1,4 @@
-import { createHash, createHmac } from "../scripts/crypto.js";
-import { bufferToHex } from "../scripts/buffers.js";
+import { bufferToHex } from "../scripts/utils/deterministic.js";
 
 /**
  * Gets the crash point of the given game hash and salt.
@@ -7,6 +6,8 @@ import { bufferToHex } from "../scripts/buffers.js";
  * @param {string} seed - The game hash.
  * @param {string} salt - The salt.
  */
+import { createHash, createHmac } from "../scripts/crypto.js";
+
 export async function gameResult(seed, salt) {
   const nBits = 52; // number of most significant bits to use
 

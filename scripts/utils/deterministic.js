@@ -17,6 +17,13 @@ export function fromHexString(input) {
   return result;
 }
 
+/** Convert Uint8Array or ArrayBuffer to hex string. */
+export function bufferToHex(bytes) {
+  if (bytes instanceof ArrayBuffer) return bufferToHex(new Uint8Array(bytes));
+  if (!(bytes instanceof Uint8Array)) throw new Error("Invalid bytes");
+  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 /**
  * Concatenate multiple Uint8Arrays.
  * @param {Uint8Array[]} parts

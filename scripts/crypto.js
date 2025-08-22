@@ -1,4 +1,4 @@
-import { hexToBuffer } from "./buffers.js";
+import { fromHexString } from "./utils/deterministic.js";
 
 if (!window.crypto?.subtle) {
   throw new Error("Crypto API not available");
@@ -35,7 +35,7 @@ export async function createHmac(seed, salt, algorithm = "SHA-256") {
   );
 
   // Convert the hex string seed to a Uint8Array
-  const seedBytes = hexToBuffer(seed);
+  const seedBytes = fromHexString(seed);
 
   // Generate the HMAC signature
   return await window.crypto.subtle.sign("HMAC", key, seedBytes);
