@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crash Validator - Rollhub</title>
+    <link rel="stylesheet" href="./assets/rollhub.css" />
+  </head>
+  <body>
+    <header>
+      <img id="logo" src="./assets/rollhub.svg" alt="Rollhub" />
+      <a
+        id="github"
+        href="https://github.com/rollhub-dev/verification"
+        target="_blank"
+      >
+        <img src="./assets/github.svg" alt="GitHub" />
+      </a>
+    </header>
+
+    <div id="root">
+      <p class="information-box">
+        <strong>Crash Validator</strong>
+        This tool allows you to validate the results of Crash games.
+      </p>
+
+      <form id="validation">
+        <div class="input-group full-width">
+          <label for="game_hash">Game Hash</label>
+          <input
+            type="text"
+            id="game_hash"
+            name="game_hash"
+            placeholder="Game Hash"
+          />
+        </div>
+
+        <div class="input-group full-width">
+          <label for="salt">Salt</label>
+          <input
+            type="text"
+            id="salt"
+            name="salt"
+            placeholder="Salt"
+            value="0000000000000000000301e2801a9a9598bfb114e574a91a887f2132f33047e6"
+          />
+        </div>
+
+        <div class="input-group full-width">
+          <label for="num_games">Number of Games</label>
+          <input
+            type="number"
+            id="num_games"
+            name="num_games"
+            placeholder="Number of games"
+            value="20"
+          />
+        </div>
+
+        <div id="group_validate" class="input-group inline">
+          <button type="submit">Validate</button>
+          <small id="validate_warning" style="display: none">
+            Verifying a huge amount of games may consume more ressources from
+            your CPU and take a long time to complete. <br />
+            You can however stop at any time.
+          </small>
+        </div>
+
+        <div
+          id="group_progress"
+          class="input-group inline"
+          style="display: none"
+        >
+          <button id="progress_stop" type="button">Stop</button>
+          <div class="progress">
+            <span id="progress_value">0</span>
+            &nbsp;/&nbsp;
+            <span id="progress_total">0</span>
+          </div>
+        </div>
+      </form>
+
+      <table id="results" style="display: none">
+        <thead>
+          <tr>
+            <th>Game hash</th>
+            <th width="250">Crash point</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script type="module" src="./crash.js"></script>
+  </body>
+</html>
