@@ -7,11 +7,12 @@ Deterministic, client-side verification tools for Rollhub games. No build step; 
 
 ### Structure
 - `index.html` — landing page linking to all verifiers
-- `crash.html` + `crash.js` — Crash validator
-- `dice99.html` + `scripts/dice99_legacy.js`
-- `dice99_v2.html` + `scripts/dice99_v2.js`
-- `limbo99.html` + `scripts/limbo99.js`
-- `mines99.html` + `scripts/mines99.js`
+- `pages/` — game verifiers (HTML only)
+  - `crash.html` + root `crash.js`
+  - `dice99.html` + `scripts/dice99_legacy.js`
+  - `dice99_v2.html` + `scripts/dice99_v2.js`
+  - `limbo99.html` + `scripts/limbo99.js`
+  - `mines99.html` + `scripts/mines99.js`
 - `scripts/utils/deterministic.js` — shared deterministic helpers (SHA-384 + AES-CTR)
 - `assets/rollhub.css` — shared styling
 

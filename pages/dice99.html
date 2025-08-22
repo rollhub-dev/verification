@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Rollhub Game Validator</title>
-  <link rel="stylesheet" href="./assets/rollhub.css" />
+  <link rel="stylesheet" href="../assets/rollhub.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -28,34 +28,34 @@
       font-weight: bold;
     }
   </style>
-  
 </head>
 <body>
   <header>
-    <img id="logo" src="./assets/RH Logo Slogan Negative.png" alt="Rollhub" />
+    <img id="logo" src="../assets/RH Logo Slogan Negative.png" alt="Rollhub" />
     <a
       id="github"
       href="https://github.com/rollhub-dev/verification"
       target="_blank"
     >
-      <img src="./assets/github.svg" alt="GitHub" />
+      <img src="../assets/github.svg" alt="GitHub" />
     </a>
   </header>
-  <h1>Rollhub Limbo99 Game Validator</h1>
+  <h1>Rollhub Dice99 Game Validator (Legacy bets)</h1>
 
-  <label for="inputhash">Server seed:</label>
+  <label for="inputhash">Server secret:</label>
   <input type="text" id="inputhash" placeholder="e.g. 6472d8dd24e95c59..." />
 
-  <label for="clientsecret">Client Seed:</label>
+  <label for="clientsecret">Client Secret:</label>
   <input type="text" id="clientsecret" placeholder="e.g. ac1c55d73f8bf994..." />
 
   <label for="nonce">Nonce:</label>
-  <input type="text" id="nonce" placeholder="e.g. 14" />
+  <input type="text" id="nonce" placeholder="e.g. b4a374555f59c07f..." />
 
   <button id="generateBtn">Generate Result</button>
   <label for="result">Result:</label>
   <input type="text" id="result" disabled/>
 
-  <script type="module" src="./scripts/limbo99.js"></script>
+  <script type="module" src="../scripts/dice99_legacy.js"></script>
 </body>
 </html>
+
