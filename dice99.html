@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Rollhub Game Validator</title>
+  <link rel="stylesheet" href="./assets/rollhub.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -29,6 +30,16 @@
   </style>
 </head>
 <body>
+  <header>
+    <img id="logo" src="./assets/RH Logo Slogan Negative.png" alt="Rollhub" />
+    <a
+      id="github"
+      href="https://github.com/rollhub-dev/verification"
+      target="_blank"
+    >
+      <img src="./assets/github.svg" alt="GitHub" />
+    </a>
+  </header>
   <h1>Rollhub Dice99 Game Validator (Legacy bets)</h1>
 
   <label for="inputhash">Server secret:</label>
@@ -44,210 +55,6 @@
   <label for="result">Result:</label>
   <input type="text" id="result" disabled/>
 
-  <script>
-    const queries = new URLSearchParams(window.location.search);
-    const queryServerSeed = queries.get("s");
-    const queryClientSeed = queries.get("c");
-    const queryNonce = queries.get("n");
-    if(queryServerSeed) {
-      document.getElementById("inputhash").value = queryServerSeed;
-    }
-    if(queryClientSeed) {
-      document.getElementById("clientsecret").value = queryClientSeed;
-    }
-    if(queryNonce) {
-      document.getElementById("nonce").value = queryNonce;
-    }
-    /**
-     * @typedef {Object} Options
-     * @property {Uint8Array[]} inputs - An array of input byte arrays.
-     * @property {number} blockCount - The number of AES-CTR blocks to hash.
-     */
-
-    /** @type {Options} */
-    const DEFAULTS = {
-      inputs: [],
-      blockCount: 1,
-    };
-
-    const HASH = "SHA-384";
-
-    /**
-     * Hash the specified input using the specified hash algorithm.
-     *
-     * @param {Uint8Array} input - The input to hash.
-     * @param {string} [hash=HASH] - The hash algorithm to use (default: SHA-384).
-     * @returns {Promise<Uint8Array>} A hash of the input.
-     */
-    async function hash(input, hash = HASH) {
-      const digest = await crypto.subtle.digest(hash, input);
-      return new Uint8Array(digest);
-    }
-
-    /**
-     * Append the input byte arrays together into a single byte array.
-     *
-     * @param {...Uint8Array} inputs - The input byte arrays to append.
-     * @returns {Uint8Array} A single byte array containing the concatenated input byte arrays.
-     */
-    function append(...inputs) {
-      const length = inputs.reduce((acc, input) => acc + input.length, 0);
-      const buffer = new Uint8Array(length);
-      for (const input of inputs) {
-        buffer.set(input, buffer.length - input.length);
-      }
-      return buffer;
-    }
-
-    /**
-     * Generate a random number with AES-CTR.
-     *
-     * @param {Partial<Options>} [options=DEFAULTS] - Options for generating the random number.
-     * @param {Uint8Array[]} [options.inputs] - An array of inputs to force a deterministic output.
-     * @param {number} [options.blockCount] - The number of AES-CTR blocks to hash.
-     * @returns {Promise<number>} A random number between 0 and 1.
-     */
-    async function randomNumber(options = DEFAULTS) {
-      const { inputs, blockCount } = { ...DEFAULTS, ...options };
-
-      // Hash each input individually.
-      const input = await Promise.all(inputs.map((input) => hash(input)));
-
-      // Hash the concatenated input hashes.
-      const { buffer } = await hash(append(...input));
-
-      // Split the hash into 32 bytes for the key and 16 bytes for the counter.
-      const keyBytes = new Uint8Array(buffer.slice(0, 32));
-      const counter = new Uint8Array(buffer.slice(32, 48));
-
-      const cryptoKey = await crypto.subtle.importKey(
-        "raw",
-        keyBytes,
-        { name: "AES-CTR" },
-        false,
-        ["encrypt"]
-      );
-
-      // Generate 16 bytes for each block.
-      const random_bytes = new Uint8Array(blockCount * 16);
-      for (let i = 0; i < blockCount; i++) {
-        const block = await crypto.subtle.encrypt(
-          { name: "AES-CTR", length: 128, counter },
-          cryptoKey,
-          new Uint8Array(16) // encrypt 16 bytes of nothing
-        );
-
-        random_bytes.set(new Uint8Array(block), i * 16);
-        incrementCounter(counter);
-      }
-
-      const view = new DataView(random_bytes.buffer);
-      let accumulator = 0;
-      for (let i = 0; i < view.byteLength; i += 4) {
-        // XOR each 4-byte (32 bit) chunk into result.
-        const chunk = view.getUint32(i, true);
-        accumulator ^= chunk;
-      }
-
-      // Normalize the accumulator to a range [0, 1].
-      return 0.5 + accumulator / 0xffffffff;
-    }
-
-    /**
-     * Increments the given counter represented as a Uint8Array.
-     *
-     * @param {Uint8Array} counter - The counter to increment.
-     */
-    function incrementCounter(counter) {
-      for (let i = counter.length - 1; i >= 0; i--) {
-        if (counter[i] === 255) {
-          counter[i] = 0;
-        } else {
-          counter[i]++;
-          break;
-        }
-      }
-    }
-
-    /**
-     * Convert a string to a Uint8Array.
-     *
-     * @param {string} input - The string to convert.
-     * @returns {Uint8Array} A Uint8Array containing the string's bytes.
-     */
-    function toUint8Array(input) {
-      const encoder = new TextEncoder();
-      return encoder.encode(input);
-    }
-
-    /**
-     * Generates game result based on game hash, client secret, and player nonce.
-     *
-     * @param {Uint8Array} game_hash - The game hash.
-     * @param {Uint8Array} client_secret - The client secret.
-     * @param {Uint8Array} player_nonce - The player nonce.
-     * @returns {Promise<number>} The game result.
-     */
-    const genGameResult = (
-      game_hash,
-      client_secret,
-      player_nonce
-    ) => randomNumber({ inputs: [game_hash, client_secret, player_nonce] });
-
-
-    /**
-     * Parse a hex string into a Uint8Array.
-     *
-     * @param {string} input - The hex string to parse.
-     * @returns {Uint8Array} A Uint8Array containing the parsed bytes.
-     */
-    function fromHexString(input) {
-      // Normalize the hex string by removing any whitespace and converting to lowercase
-      input = input.replace(/\s+/g, "").toLowerCase();
-
-      // Validate the hex string
-      if (!/^[\da-f]*$/.test(input)) {
-        throw new Error("Invalid hex string");
-      }
-
-      // Ensure the length is even by prepending a '0' if necessary
-      if (input.length % 2 !== 0) {
-        input = "0" + input;
-      }
-
-      // Create a Uint8Array with a size based on the number of bytes in the hex string
-      const byteCount = input.length / 2;
-      const result = new Uint8Array(byteCount);
-
-      // Convert each pair of hex characters into a byte
-      for (let i = 0; i < byteCount; i++) {
-        const offset = i * 2;
-        result[i] = parseInt(input.substring(offset, offset + 2), 16);
-      }
-
-      return result;
-    }
-
-    // Event listener for the "Generate Result" button.
-    document.getElementById("generateBtn").addEventListener("click", async () => {
-      const inputHashValue = document.getElementById("inputhash").value;
-      const nonceValue = document.getElementById("nonce").value;
-      const clientSecretValue = document.getElementById("clientsecret").value;
-      if (!inputHashValue || !nonceValue || !clientSecretValue) {
-        return;
-      }
-      const resultEl = document.getElementById("result");
-
-      try {
-        const inputHash = fromHexString(inputHashValue);
-        const nonce = fromHexString(nonceValue);
-        const clientSecret = fromHexString(clientSecretValue);
-        const result = await genGameResult(inputHash, clientSecret, nonce);
-        resultEl.value = (result * 100).toFixed(2);
-      } catch (error) {
-        resultEl.value = "Error: " + error.message;
-      }
-    });
-  </script>
+  <script type="module" src="./scripts/dice99_legacy.js"></script>
 </body>
 </html>

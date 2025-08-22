@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rollhub Verifiers</title>
+    <link rel="stylesheet" href="./assets/rollhub.css" />
+    <style>
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+      .card { background: var(--container); border: 1px solid var(--primary); border-radius: 0.5rem; padding: 1rem; }
+      .card h3 { margin: 0 0 0.5rem 0; }
+      .card a { color: var(--primary); text-decoration: none; }
+      .card a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img id="logo" src="./assets/RH Logo Slogan Negative.png" alt="Rollhub" />
+      <a id="github" href="https://github.com/rollhub-dev/verification" target="_blank">
+        <img src="./assets/github.svg" alt="GitHub" />
+      </a>
+    </header>
+
+    <div id="root">
+      <div class="information-box">
+        <strong>Rollhub Game Verifiers</strong>
+        Select a validator tool below.
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Crash</h3>
+          <p>Validate Crash game results.</p>
+          <a href="./crash.html">Open Crash Validator</a>
+        </div>
+        <div class="card">
+          <h3>Dice99 (Legacy bets)</h3>
+          <p>Legacy deterministic result calculator.</p>
+          <a href="./dice99.html">Open Dice99 Legacy</a>
+        </div>
+        <div class="card">
+          <h3>Dice99</h3>
+          <p>SHA3/AES-CTR based deterministic result calculator.</p>
+          <a href="./dice99_v2.html">Open Dice99</a>
+        </div>
+        <div class="card">
+          <h3>Limbo99</h3>
+          <p>Deterministic multiplier calculator.</p>
+          <a href="./limbo99.html">Open Limbo99</a>
+        </div>
+        <div class="card">
+          <h3>Mines</h3>
+          <p>Deterministically generated mine grid visualizer.</p>
+          <a href="./mines99.html">Open Mines</a>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
+
+

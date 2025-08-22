@@ -1,9 +1,12 @@
 :root {
-  --background: #1b1d1e;
+  --background: #0e0f12;
   --foreground: #ffffff;
-  --container: #161718;
+  --container: #13141a;
 
-  --primary: #9b51e0;
+  --primary: #ff2da1; /* Rollhub neon pink */
+  --primary-800: #b81f71;
+  --primary-900: #8b1756;
+  --cyan: #19e3ff;
   --green: #44b39d;
   --gray: #abacad;
   --red: #bf4a67;
@@ -68,6 +71,17 @@ header #github img {
   height: 32px;
 }
 
+/* Subtle neon divider under header similar to app navigation */
+header::after {
+  content: "";
+  position: absolute;
+  bottom: -16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+}
+
 .information-box {
   background-color: var(--container);
 
@@ -100,7 +114,22 @@ button {
 
 button:hover {
   background-color: var(--primary);
+  border-color: var(--primary);
   cursor: pointer;
+}
+
+/* Link-style buttons for index cards */
+.link-button {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.5rem;
+  color: var(--foreground);
+  text-decoration: none;
+  background-color: transparent;
+}
+.link-button:hover {
+  background-color: var(--primary);
 }
 
 small {
@@ -176,6 +205,49 @@ table td.is-at-median {
 
 table td.is-under-median {
   color: var(--red);
+}
+
+/* Cards/Grid used on index */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255,45,161,0.06), rgba(255,45,161,0.02));
+  border: 1px solid rgba(255,45,161,0.35);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.card h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.card p {
+  margin: 0 0 0.75rem 0;
+  color: var(--gray);
+}
+
+.card a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+.card a:hover {
+  text-decoration: underline;
+}
+
+/* Inputs to echo Rollhub style */
+input {
+  background: #0f1015;
+  color: var(--foreground);
+  border-color: rgba(255,45,161,0.5);
+}
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255,45,161,0.15);
 }
 
 
