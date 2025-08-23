@@ -4,57 +4,108 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rollhub Verifiers</title>
-    <link rel="stylesheet" href="./assets/rollhub.css" />
-    <style>
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-      .card { background: var(--container); border: 1px solid var(--primary); border-radius: 0.5rem; padding: 1rem; }
-      .card h3 { margin: 0 0 0.5rem 0; }
-      .card a { color: var(--primary); text-decoration: none; }
-      .card a:hover { text-decoration: underline; }
-    </style>
+    <link rel="stylesheet" href="./assets/main.css" />
   </head>
   <body>
     <header>
-      <img id="logo" src="./assets/RH Logo Slogan Negative.png" alt="Rollhub" />
-      <a id="github" href="https://github.com/rollhub-dev/verification" target="_blank">
-        <img src="./assets/github.svg" alt="GitHub" />
-      </a>
+      <img id="logo" src="./assets/rh-logo.png" alt="Rollhub" />
+      <nav class="top-nav" aria-label="Primary">
+        <a href="https://rollhub.com" target="_blank" rel="noopener">Home</a>
+        <a class="icon" href="https://github.com/rollhub-dev/verification" target="_blank" aria-label="GitHub" rel="noopener">
+          <img src="./assets/github.svg" alt="GitHub" />
+        </a>
+      </nav>
     </header>
 
     <div id="root">
-      <div class="information-box">
-        <strong>Rollhub Game Verifiers</strong>
-        Select a validator tool below.
-      </div>
+      <section class="information-box hero">
+        <h1 class="section-title">Provably Fair Verification</h1>
+        <p class="muted">Reproduce any Rollhub game result using the same seeds and algorithms. Select a tool below.</p>
+      </section>
 
-      <div class="grid">
+      <section class="grid">
         <div class="card">
           <h3>Crash</h3>
           <p>Validate Crash game results.</p>
-          <a href="./pages/crash.html">Open Crash Validator</a>
+          <a class="link-button" href="./pages/crash.html">Open Crash Validator</a>
         </div>
         <div class="card">
           <h3>Dice99 (Legacy bets)</h3>
           <p>Legacy deterministic result calculator.</p>
-          <a href="./pages/dice99.html">Open Dice99 Legacy</a>
+          <a class="link-button" href="./pages/dice99.html">Open Dice99 Legacy</a>
         </div>
         <div class="card">
           <h3>Dice99</h3>
           <p>SHA3/AES-CTR based deterministic result calculator.</p>
-          <a href="./pages/dice99_v2.html">Open Dice99</a>
+          <a class="link-button" href="./pages/dice99_v2.html">Open Dice99</a>
         </div>
         <div class="card">
           <h3>Limbo99</h3>
           <p>Deterministic multiplier calculator.</p>
-          <a href="./pages/limbo99.html">Open Limbo99</a>
+          <a class="link-button" href="./pages/limbo99.html">Open Limbo99</a>
         </div>
         <div class="card">
           <h3>Mines</h3>
           <p>Deterministically generated mine grid visualizer.</p>
-          <a href="./pages/mines99.html">Open Mines</a>
+          <a class="link-button" href="./pages/mines99.html">Open Mines</a>
         </div>
-      </div>
+      </section>
+
+      <section class="information-box telegram">
+        <div class="telegram-title">
+          <span class="tg-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 3L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M21 3L15 21L10 14L3 10L21 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <strong>Join Rollhub on Telegram</strong>
+        </div>
+        <p>Get early drops, bonuses, and live sports promos — straight from the team.</p>
+        <div class="telegram-links">
+          <a class="link-button icon-btn" href="https://t.me/rollhub_com_token" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="3" fill="currentColor"/>
+            </svg>
+            RHUB Token Community
+          </a>
+          <a class="link-button icon-btn" href="https://t.me/rollhub_com_casino" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+              <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+              <circle cx="15" cy="9" r="1.5" fill="currentColor"/>
+              <circle cx="9" cy="15" r="1.5" fill="currentColor"/>
+              <circle cx="15" cy="15" r="1.5" fill="currentColor"/>
+            </svg>
+            Casino Community
+          </a>
+          <a class="link-button icon-btn" href="https://t.me/rollhub_com_sportsbet" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M8 21V14L12 10L16 14V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V8H7V7Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Sports Betting Community
+          </a>
+        </div>
+        <div class="telegram-cta">
+          <a class="link-button button-primary cta-large" href="https://rollhub.com" target="_blank" rel="noopener">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            Play on rollhub.com
+          </a>
+        </div>
+      </section>
+
+      <footer>
+        <div class="footer-inner">
+          <small>© <span id="year"></span> Rollhub • Provably Fair Verification</small>
+        </div>
+        <script>
+          document.getElementById('year').textContent = new Date().getFullYear();
+        </script>
+      </footer>
     </div>
+
   </body>
   </html>
 

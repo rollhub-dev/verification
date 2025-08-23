@@ -1,6 +1,6 @@
 # Rollhub Game Verifiers
 
-Deterministic, client-side verification tools for Rollhub games. No build step; static files deploy to GitHub Pages.
+Deterministic, client-side verification tools for Rollhub games.
 
 ### Live Demo
 - Pages: https://rollhub-dev.github.io/verification
@@ -14,7 +14,7 @@ Deterministic, client-side verification tools for Rollhub games. No build step; 
   - `limbo99.html` + `scripts/limbo99.js`
   - `mines99.html` + `scripts/mines99.js`
 - `scripts/utils/deterministic.js` — shared deterministic helpers (SHA-384 + AES-CTR)
-- `assets/rollhub.css` — shared styling
+- `assets/main.css` — shared styling
 
 ### Local Usage
 Open `index.html` directly in your browser, or serve locally:
