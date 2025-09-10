@@ -414,5 +414,6 @@ footer {
   opacity: 0.9;
 }
 .footer-link:hover { color: var(--primary); }
-
-
+.ok { color: #0a7f27; font-weight: 600; }
+.bad { color: #b00020; font-weight: 600; }
+.muted { color: #777; font-size: 12px; }
