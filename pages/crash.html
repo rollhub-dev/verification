@@ -131,9 +131,9 @@
         }
         function nearlyEqual(a, b, eps = 1e-9) { return Math.abs(a - b) <= eps; }
         function normalizeMultiplier(m) {
-          if (!Number.isFinite(m)) return NaN;
-          const v = Math.floor(m * 100) / 100;
-          return Number(v.toFixed(2));
+          // Add a tiny epsilon to stabilize 1.1500000000000002-type cases, then floor
+          const cents = Math.trunc((m + 1e-12) * 100);
+          return cents / 100;
         }
 
         // --- Minimal BLAKE2s-256 (via blakejs subset) ---
@@ -255,7 +255,7 @@
           if(!hash || !Number.isFinite(pub)){ out.textContent = "Enter Server Hash and the result multiplier."; return; }
           const derived = multiplierFromHash(hash);
           const md = normalizeMultiplier(derived);
-          const mp = normalizeMultiplier(pub);
+          const mp = normalizeMultiplier(Number(pub));
           const ok = Number.isFinite(md) && Number.isFinite(mp) && md === mp;
           out.innerHTML = (ok?'<span class="ok">OK</span>':'<span class="bad">FAIL</span>')+
             `: derived=${Number.isFinite(md)?md.toFixed(2):'NaN'} vs published=${Number.isFinite(mp)?mp.toFixed(2):'NaN'}`;
