@@ -23,80 +23,243 @@
     </header>
 
     <div id="root">
-      <p class="information-box">
+      <div class="information-box">
         <strong>Crash Validator</strong>
-        This tool allows you to validate the results of Crash games.
-      </p>
+        The game uses a forward-only hash chain for round randomness and publishes a commitment before each round that cannot reveal future outcomes. After a round finishes, its hash and multiplier are revealed so anyone can verify:
+        <ul>
+          <li>Round chain: H<sub>i+1</sub> = sha256(H<sub>i</sub>) on hex-string bytes.</li>
+          <li>Commitment: next_hash<sub>i</sub> = blake2s256(H<sub>i</sub>), published pre-round. This doesn't reveal H<sub>i+1</sub> or the multiplier.</li>
+          <li>Reveal: After the round, H<sub>i</sub> is published. Users verify next_hash<sub>i</sub> = blake2s256(H<sub>i</sub>) and recompute the multiplier from H<sub>i</sub>.</li>
+        </ul>
+        There are multiple ways to prove fairness of your bets.
+      </div>
 
-      <form id="validation">
-        <div class="input-group full-width">
-          <label for="game_hash">Game Hash</label>
-          <input
-            type="text"
-            id="game_hash"
-            name="game_hash"
-            placeholder="Game Hash"
-          />
-        </div>
+      <div class="input-group full-width">
+        <strong>Multiplier from H_i (Server Hash)</strong>
+        <br/>
+        <p class="muted">Formula (RTP 99%): take the first 13 hex chars (52 bits) as an integer x, r = x / 2^52, multiplier m = max(1, (1 - 0.01) / (1 - r)).</p>
+        <label for="mh">Revealed Server Hash</label>
+        <input
+          type="text"
+          id="mh"
+          name="mh"
+          placeholder="e.g. 5f2d..."
+        />
+        <label for="mp">Revealed Multiplier</label>
+        <input
+          type="text"
+          id="mp"
+          name="mp"
+          placeholder="e.g. 2.15"
+        />
+        <button id="btnVerifyMult">Verify Multiplier</button>
+        <div id="mult_out" class="mono"></div>
+      </div>
 
-        <div class="input-group full-width">
-          <label for="salt">Salt</label>
-          <input
-            type="text"
-            id="salt"
-            name="salt"
-            placeholder="Salt"
-            value="0000000000000000000301e2801a9a9598bfb114e574a91a887f2132f33047e6"
-          />
-        </div>
+      <div class="input-group full-width">
+        <strong>Compare Hashes</strong>
+        <br/>
+        <p class="muted">We compute blake2s256(H_i) and compare it to your Commitment Hash, which was provided as soon as you placed your bet before the round starts.</p>
+        <label for="cr">Revealed Server Hash</label>
+        <input
+          type="text"
+          id="cr"
+          name="cr"
+          placeholder="e.g. 5f2d..."
+        />
+        <label for="cs">Commitment Hash</label>
+        <input
+          type="text"
+          id="cs"
+          name="cs"
+          placeholder="e.g. 5f2d..."
+        />
+        <button id="btnVerifyCommit">Verify Commitment</button>
+        <div id="commit_out" class="mono"></div>
+      </div>
+      <script type="text/javascript">
+        const elements = {
+          mh: document.querySelector("input#mh"),
+          mp: document.querySelector("input#mp"),
+          mult_out: document.querySelector("div#mult_out"),
 
-        <div class="input-group full-width">
-          <label for="num_games">Number of Games</label>
-          <input
-            type="number"
-            id="num_games"
-            name="num_games"
-            placeholder="Number of games"
-            value="20"
-          />
-        </div>
+          cs: document.querySelector("input#cs"),
+          cr: document.querySelector("input#cr"),
+          commit_out: document.querySelector("div#commit_out"),
 
-        <div id="group_validate" class="input-group inline">
-          <button type="submit">Validate</button>
-          <small id="validate_warning" style="display: none">
-            Verifying a huge amount of games may consume more ressources from
-            your CPU and take a long time to complete. <br />
-            You can however stop at any time.
-          </small>
-        </div>
+          btnVerifyMult: document.querySelector("#btnVerifyMult"),
+          btnVerifyCommit: document.querySelector("#btnVerifyCommit"),
+        };
 
-        <div
-          id="group_progress"
-          class="input-group inline"
-          style="display: none"
-        >
-          <button id="progress_stop" type="button">Stop</button>
-          <div class="progress">
-            <span id="progress_value">0</span>
-            &nbsp;/&nbsp;
-            <span id="progress_total">0</span>
-          </div>
-        </div>
-      </form>
+        const queries = new URLSearchParams(window.location.search);
 
-      <table id="results" style="display: none">
-        <thead>
-          <tr>
-            <th>Game hash</th>
-            <th width="250">Crash point</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+        const mhash = queries.get("mh");
+        const mpub = queries.get("mp");
+        if (mhash) elements.mh.value = mhash;
+        if (mpub) elements.mp.value = mpub;
 
-    <script type="module" src="../crash.js"></script>
-  </body>
-  </html>
+        const csaved = queries.get("cs");
+        const cround = queries.get("cr");
+        if (csaved) elements.cs.value = csaved;
+        if (cround) elements.cr.value = cround;
 
+        const enc = new TextEncoder();
+        function toHex(buffer) {
+          const v = new Uint8Array(buffer);
+          let s = "";
+          for (let i = 0; i < v.length; i++) s += v[i].toString(16).padStart(2, "0");
+          return s;
+        }
+        async function sha256HexUtf8(hexString) {
+          const data = enc.encode(String(hexString || ""));
+          const buf = await crypto.subtle.digest("SHA-256", data);
+          return toHex(buf);
+        }
 
+        function first52BitsFromHex(hex) {
+          const slice = String(hex || "").slice(0, 13);
+          if (!/^[0-9a-fA-F]{13}$/.test(slice)) return NaN;
+          return parseInt(slice, 16);
+        }
+        function multiplierFromHash(hex) {
+          const x = first52BitsFromHex(hex);
+          if (!Number.isFinite(x)) return NaN;
+          const r = x / Math.pow(2, 52);
+          const e = 0.01;
+          const m = (1 - e) / (1 - r);
+          return Math.max(1, m);
+        }
+        function nearlyEqual(a, b, eps = 1e-9) { return Math.abs(a - b) <= eps; }
+        function normalizeMultiplier(m) {
+          if (!Number.isFinite(m)) return NaN;
+          const v = Math.floor(m * 100) / 100;
+          return Number(v.toFixed(2));
+        }
+
+        // --- Minimal BLAKE2s-256 (via blakejs subset) ---
+        // Source: https://github.com/dcposch/blakejs (MIT). Trimmed for blake2s(hexString) -> hex.
+        // Begin blake2s subset
+        (function(){
+          const BLAKE2S_IV = new Uint32Array([
+            0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+            0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
+          ]);
+          const SIGMA = new Uint8Array([
+            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+            14,10,4,8,9,15,13,6,1,12,0,2,11,7,5,3,
+            11,8,12,0,5,2,15,13,10,14,3,6,7,1,9,4,
+            7,9,3,1,13,12,11,14,2,6,5,10,4,0,15,8,
+            9,0,5,7,2,4,10,15,14,1,11,12,6,8,3,13,
+            2,12,6,10,4,7,0,9,14,3,11,5,15,8,1,13,
+            12,5,1,15,14,9,2,7,0,4,13,6,11,3,10,8,
+            13,11,7,14,12,1,3,9,5,0,15,4,8,6,2,10,
+            6,15,14,9,11,3,0,8,12,2,13,7,1,4,10,5,
+            10,2,8,4,7,6,1,5,15,11,9,14,3,12,13,0
+          ]);
+          function B2S_G(a, b, c, d, x, y) {
+            a = a + b + x | 0; d = rotr32(d ^ a, 16);
+            c = c + d | 0;     b = rotr32(b ^ c, 12);
+            a = a + b + y | 0; d = rotr32(d ^ a, 8);
+            c = c + d | 0;     b = rotr32(b ^ c, 7);
+            return [a,b,c,d];
+          }
+          function rotr32(x, y){ return x >>> y ^ x << (32 - y); }
+          function getInt32(a, i){ return (a[i] | a[i+1]<<8 | a[i+2]<<16 | a[i+3]<<24)>>>0; }
+          function blake2sCompress(ctx, last){
+            const v = new Uint32Array(16); const m = new Uint32Array(16);
+            for(let i=0;i<8;i++) v[i] = ctx.h[i];
+            for(let i=0;i<8;i++) v[i+8] = BLAKE2S_IV[i];
+            v[12] ^= ctx.t & 0xFFFFFFFF; v[13] ^= (ctx.t / 0x100000000)>>>0;
+            if(last){ v[14] = ~v[14]; }
+            for(let i=0;i<16;i++) m[i] = getInt32(ctx.b, 4*i);
+            for(let i=0;i<10;i++){
+              let r = i*16;
+              let a=0,b=4,c=8,d=12;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+0]], m[SIGMA[r+1]]);
+              a=1;b=5;c=9;d=13;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+2]], m[SIGMA[r+3]]);
+              a=2;b=6;c=10;d=14;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+4]], m[SIGMA[r+5]]);
+              a=3;b=7;c=11;d=15;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+6]], m[SIGMA[r+7]]);
+              a=0;b=5;c=10;d=15;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+8]], m[SIGMA[r+9]]);
+              a=1;b=6;c=11;d=12;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+10]], m[SIGMA[r+11]]);
+              a=2;b=7;c=8;d=13;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+12]], m[SIGMA[r+13]]);
+              a=3;b=4;c=9;d=14;
+              [v[a],v[b],v[c],v[d]] = B2S_G(v[a],v[b],v[c],v[d], m[SIGMA[r+14]], m[SIGMA[r+15]]);
+            }
+            for(let i=0;i<8;i++) ctx.h[i] = (ctx.h[i]^v[i]^v[i+8])>>>0;
+          }
+          function blake2sInit(outlen){
+            const ctx = { b: new Uint8Array(64), h: new Uint32Array(8), c: 0, t: 0 };
+            for(let i=0;i<8;i++) ctx.h[i] = BLAKE2S_IV[i];
+            ctx.h[0] ^= 0x01010000 ^ outlen;
+            return ctx;
+          }
+          function blake2sUpdate(ctx, input){
+            for(let i=0;i<input.length;i++){
+              if(ctx.c === 64){ ctx.t += ctx.c; blake2sCompress(ctx, false); ctx.c = 0; }
+              ctx.b[ctx.c++] = input[i];
+            }
+          }
+          function blake2sFinal(ctx){
+            ctx.t += ctx.c; while(ctx.c < 64) ctx.b[ctx.c++] = 0;
+            blake2sCompress(ctx, true);
+            const out = new Uint8Array(32);
+            for(let i=0;i<8;i++){
+              const h = ctx.h[i];
+              out[4*i+0] = h & 0xFF;
+              out[4*i+1] = (h>>>8) & 0xFF;
+              out[4*i+2] = (h>>>16) & 0xFF;
+              out[4*i+3] = (h>>>24) & 0xFF;
+            }
+            return out;
+          }
+          window.blake2sHex = function(str){
+            const data = new TextEncoder().encode(String(str||""));
+            const ctx = blake2sInit(32);
+            blake2sUpdate(ctx, data);
+            return toHex(blake2sFinal(ctx));
+          }
+        })();
+        // End blake2s subset
+
+        // 1) Verify commitment
+        document.getElementById("btnVerifyCommit").addEventListener("click", async () => {
+          const saved = (elements.cs.value || "").trim().toLowerCase();
+          const h_i = (elements.cr.value || "").trim().toLowerCase();
+          if(queries.get("cs") != saved) {queries.set("cs", saved)}
+          if(queries.get("cr") != h_i) {queries.set("cr", h_i)}
+          const newUrl = `${location.pathname}?${queries.toString()}`;
+          history.replaceState(null, "", newUrl);
+          const out = document.getElementById("commit_out");
+          if(!saved || !h_i){ out.textContent = "Enter both Commitment Hash and Server Hash."; return; }
+          const expected = window.blake2sHex(h_i);
+          const ok = (expected === saved);
+          out.innerHTML = (ok?'<span class="ok">OK</span>':'<span class="bad">FAIL</span>')+
+            `: blake2s256(H_i)=${expected} vs saved commitment_hash=${saved}`;
+        });
+
+        // 2) Verify multiplier
+        document.getElementById("btnVerifyMult").addEventListener("click", () => {
+          const hash = (elements.mh.value || "").trim();
+          const pub = Number(elements.mp.value || "".trim());
+          if(queries.get("mh") != hash) {queries.set("mh", hash)}
+          if(queries.get("mp") != pub.toString()) {queries.set("mp", pub.toString())}
+          const newUrl = `${location.pathname}?${queries.toString()}`;
+          history.replaceState(null, "", newUrl);
+          const out = document.getElementById("mult_out");
+          if(!hash || !Number.isFinite(pub)){ out.textContent = "Enter Server Hash and the result multiplier."; return; }
+          const derived = multiplierFromHash(hash);
+          const md = normalizeMultiplier(derived);
+          const mp = normalizeMultiplier(pub);
+          const ok = Number.isFinite(md) && Number.isFinite(mp) && md === mp;
+          out.innerHTML = (ok?'<span class="ok">OK</span>':'<span class="bad">FAIL</span>')+
+            `: derived=${Number.isFinite(md)?md.toFixed(2):'NaN'} vs published=${Number.isFinite(mp)?mp.toFixed(2):'NaN'}`;
+        });
+      </script>
+    </body>
+    </html>
